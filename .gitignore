@@ -1,0 +1,30 @@
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+
+# ── Environment / Secrets ─────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Go ────────────────────────────────────────────────────────
+backend/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# ── Frontend build ────────────────────────────────────────────
+frontend/dist/
+frontend/.vite/
+
+# ── OS / Editor ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
