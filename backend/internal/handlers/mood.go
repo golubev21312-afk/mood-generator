@@ -40,7 +40,8 @@ func (h *Handler) GetHistory(c *gin.Context) {
 		`SELECT r.id, r.user_input, r.mood_label, r.energy, r.created_at,
 		        res.palette, res.quote, res.quote_author, res.tracks
 		 FROM mood_requests r
-		 LEFT JOIN mood_results res ON res.request_id = r.id
+		 INNER JOIN mood_results res ON res.request_id = r.id
+		 WHERE r.mood_label != ''
 		 ORDER BY r.created_at DESC LIMIT 20`,
 	)
 	if err != nil {
@@ -49,12 +50,12 @@ func (h *Handler) GetHistory(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var items []gin.H
+	items := []gin.H{}
 	for rows.Next() {
 		var id, energy int
 		var userInput, moodLabel, createdAt string
 		var paletteJSON, tracksJSON []byte
-		var quote, quoteAuthor string
+		var quote, quoteAuthor sql.NullString
 
 		rows.Scan(&id, &userInput, &moodLabel, &energy, &createdAt,
 			&paletteJSON, &quote, &quoteAuthor, &tracksJSON)
@@ -66,7 +67,7 @@ func (h *Handler) GetHistory(c *gin.Context) {
 		items = append(items, gin.H{
 			"id": id, "user_input": userInput, "mood_label": moodLabel,
 			"energy": energy, "created_at": createdAt,
-			"palette": palette, "quote": quote, "quote_author": quoteAuthor,
+			"palette": palette, "quote": quote.String, "quote_author": quoteAuthor.String,
 			"tracks": tracks,
 		})
 	}

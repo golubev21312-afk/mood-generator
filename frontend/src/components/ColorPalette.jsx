@@ -1,12 +1,13 @@
 import { useState } from "react"
 
-function Swatch({ color }) {
+function Swatch({ color, onCopy }) {
   const [copied, setCopied] = useState(false)
 
   const handleClick = () => {
     navigator.clipboard.writeText(color.hex)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
+    onCopy?.()
   }
 
   return (
@@ -27,7 +28,7 @@ function Swatch({ color }) {
   )
 }
 
-export default function ColorPalette({ palette }) {
+export default function ColorPalette({ palette, onCopy }) {
   return (
     <div className="w-full animate-slide-up">
       <h2 className="text-sm uppercase tracking-widest mb-4"
@@ -36,7 +37,7 @@ export default function ColorPalette({ palette }) {
       </h2>
       <div className="flex gap-3 flex-wrap">
         {palette.map((color, i) => (
-          <Swatch key={i} color={color} />
+          <Swatch key={i} color={color} onCopy={onCopy} />
         ))}
       </div>
     </div>

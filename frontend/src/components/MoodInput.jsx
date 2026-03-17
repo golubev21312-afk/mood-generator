@@ -17,7 +17,7 @@ export default function MoodInput({ onSubmit, loading }) {
         rows={5}
         disabled={loading}
         className="
-          w-full p-6 rounded-2xl text-lg resize-none
+          w-full p-4 md:p-6 rounded-2xl text-base md:text-lg resize-none
           bg-white/10 backdrop-blur-sm border border-white/20
           text-white placeholder-white/50
           focus:outline-none focus:ring-2 focus:ring-white/40

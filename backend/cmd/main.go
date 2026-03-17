@@ -12,10 +12,9 @@ import (
 )
 
 func main() {
-	// Загружаем .env по абсолютному пути
-	envPath := `C:\Users\Пользователь\Desktop\ralez\mood-generator\backend\.env`
-	if err := godotenv.Load(envPath); err != nil {
-		godotenv.Load() // fallback
+	// Загружаем .env: сначала рядом с бинарём, потом из корня проекта
+	if err := godotenv.Load(".env"); err != nil {
+		godotenv.Load("../.env")
 	}
 
 	database, err := db.Connect()
@@ -28,8 +27,18 @@ func main() {
 	r := gin.Default()
 
 	// CORS для фронтенда
+	allowedOrigins := []string{
+		"http://localhost:5173",
+		os.Getenv("FRONTEND_URL"),
+	}
 	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "http://localhost:5173")
+		origin := c.Request.Header.Get("Origin")
+		for _, allowed := range allowedOrigins {
+			if allowed != "" && origin == allowed {
+				c.Header("Access-Control-Allow-Origin", origin)
+				break
+			}
+		}
 		c.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type")
 		if c.Request.Method == "OPTIONS" {
