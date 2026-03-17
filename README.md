@@ -1,20 +1,21 @@
 # Mood Generator
 
-Ты пишешь как себя чувствуешь — а приложение превращает это в цветовую палитру, цитату и плейлист на YouTube.
+Пишешь как себя чувствуешь — получаешь цветовую палитру, цитату и плейлист.
 
 Не очень практично? Наверное. Но именно это и делает его интересным.
 
 ---
 
-## Как это работает
+## Что происходит
 
-Пишешь что-то вроде *«устал, хочется тишины»* — и за пару секунд получаешь:
+Пишешь что-то вроде *«устал, хочется тишины»* — за пару секунд получаешь:
 
-- **Цветовую палитру** — цвета, которые соответствуют твоему настроению
+- **Цветовую палитру** из 3 цветов под настроение (кликни на цвет — скопируется HEX)
 - **Цитату** — иногда точную, иногда неожиданную
-- **6 треков** — подобранных по настроению, с прямой ссылкой на YouTube
+- **6 треков** с Last.fm, с прямой ссылкой на YouTube
+- **Шкалу энергии** от апатии до эйфории
 
-Фоновый градиент страницы тоже меняется под твои цвета. Мелочь, но приятно.
+Фон страницы меняется под твои цвета. История запросов — в боковой панели. Каждый результат живёт по своей ссылке `/mood/:id` — можно шарить.
 
 ---
 
@@ -22,52 +23,64 @@
 
 **Backend** — Go + Gin + PostgreSQL
 **Frontend** — React + Vite + Tailwind CSS
-**AI** — Groq API (llama-3.3-70b) — анализирует текст и генерирует палитру с цитатой
-**Музыка** — Last.fm API — подбирает треки по тегу настроения
+**AI** — Groq API (llama-3.3-70b) — анализирует текст, генерирует палитру и цитату
+**Музыка** — Last.fm API — треки по тегу настроения
 
 ---
 
 ## Запуск
 
-**Что нужно:** Go 1.21+, Node.js 18+, PostgreSQL
+**Нужно:** Go 1.22+, Node.js 18+, PostgreSQL
 
 ```bash
-# 1. Клонируй репо
+# Клонируй
 git clone <repo-url>
 cd mood-generator
 
-# 2. Настрой переменные окружения
-cp .env.example backend/.env
-# Заполни backend/.env своими ключами
+# Переменные окружения
+cp .env.example .env
+# заполни .env — там DB_* + GROQ_API_KEY + LASTFM_API_KEY
 
-# 3. Создай базу данных
+# База данных
 psql -U postgres -c "CREATE DATABASE mood_generator;"
-psql -U postgres -d mood_generator -c "
-  CREATE TABLE mood_requests (
-    id SERIAL PRIMARY KEY,
-    user_input TEXT NOT NULL,
-    mood_label VARCHAR(50),
-    energy INTEGER,
-    created_at TIMESTAMP DEFAULT NOW()
-  );
-  CREATE TABLE mood_results (
-    id SERIAL PRIMARY KEY,
-    request_id INTEGER REFERENCES mood_requests(id),
-    palette JSONB,
-    quote TEXT,
-    quote_author VARCHAR(100),
-    tracks JSONB,
-    created_at TIMESTAMP DEFAULT NOW()
-  );"
+psql -U postgres -d mood_generator -f schema.sql
+```
 
-# 4. Запусти бэкенд
+> Если schema.sql нет — SQL для таблиц ниже в разделе «База данных»
+
+```bash
+# Бэкенд (из корня проекта)
 cd backend && go run ./cmd/main.go
 
-# 5. В другом терминале — фронтенд
+# Фронтенд (в другом терминале)
 cd frontend && npm install && npm run dev
 ```
 
-Открывай `http://localhost:5173` и пробуй.
+Открывай `http://localhost:5173`.
+
+---
+
+## База данных
+
+```sql
+CREATE TABLE mood_requests (
+  id         SERIAL PRIMARY KEY,
+  user_input TEXT NOT NULL,
+  mood_label VARCHAR(50),
+  energy     INTEGER,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE mood_results (
+  id           SERIAL PRIMARY KEY,
+  request_id   INTEGER REFERENCES mood_requests(id),
+  palette      JSONB,
+  quote        TEXT,
+  quote_author VARCHAR(100),
+  tracks       JSONB,
+  created_at   TIMESTAMP DEFAULT NOW()
+);
+```
 
 ---
 
@@ -87,8 +100,28 @@ cd backend
 go test ./internal/... -v
 ```
 
-Тесты не требуют реальных API ключей — всё замокировано.
+Без реальных API и БД — всё замокировано.
 
 ---
 
-Проект сделан для изучения связки Go + React и работы с AI API. Если хочешь что-то улучшить — PR приветствуется.
+## Деплой
+
+Backend → Railway, Frontend → Vercel.
+
+```bash
+# Backend
+cd backend
+railway init && railway up
+
+# Frontend
+cd frontend
+npm run build
+vercel --prod
+```
+
+В Railway добавь переменную `FRONTEND_URL` с доменом Vercel.
+В Vercel добавь `VITE_API_URL` с URL Railway-бэкенда.
+
+---
+
+Сделан для практики связки Go + React и работы с AI API.
