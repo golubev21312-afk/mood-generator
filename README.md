@@ -34,7 +34,7 @@
 
 ```bash
 # Клонируй
-git clone <repo-url>
+git clone https://github.com/golubev21312-afk/mood-generator.git
 cd mood-generator
 
 # Переменные окружения
@@ -45,8 +45,6 @@ cp .env.example .env
 psql -U postgres -c "CREATE DATABASE mood_generator;"
 psql -U postgres -d mood_generator -f schema.sql
 ```
-
-> Если schema.sql нет — SQL для таблиц ниже в разделе «База данных»
 
 ```bash
 # Бэкенд (из корня проекта)
